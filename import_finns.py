@@ -29,7 +29,7 @@ site = lines[2]
 site_login = lines[3]
 f.close()
 
-
+# login and acess menu function 
 def login_acess_Menu():
   print("login called")
   if driver.current_url == site_login:
@@ -38,7 +38,7 @@ def login_acess_Menu():
         element.send_keys(username)
         element = driver.find_element(By.ID, "password")
         element.send_keys(password)
-        element = driver.find_element_by_id('Entrar')
+        element = driver.find_element(By.ID, 'Entrar')
         element.click()
         WebDriverWait(driver, 12).until(EC.invisibility_of_element((By.CLASS_NAME, 'loading-root')))
         print("Login successfully")
@@ -62,8 +62,9 @@ def login_acess_Menu():
 # list for append 
 finn = []
 
+
 def get_list_finn():
-    print("get_list_finn caled")
+    print('get_list_finn called')
     WebDriverWait(driver, 30).until(EC.invisibility_of_element((By.CLASS_NAME, 'loading-root')))
     time.sleep(5)
     table_id = WebDriverWait(driver, 10).until(EC.visibility_of_element_located((By.CSS_SELECTOR, '#vm\.id > tbody')))
@@ -77,15 +78,14 @@ def get_list_finn():
         element.click()
         get_list_finn()
     except:
-        print('Fail')
+        print(f"Fim da infrações. Total: '{len(finn)}'")
         
 
 def interval_day():
-    print("interval days called")
     try:
         element = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, 'inicioInfracao')))   
         today = date.today()
-        end_date = today - datetime.timedelta(days=3)
+        end_date = today - datetime.timedelta(days=2)
         element.send_keys(end_date.strftime("%d/%m/%Y"))
         element = driver.find_element(By.ID, "fimInfracao")
         element.send_keys(today.strftime("%d/%m/%Y"))
@@ -95,9 +95,19 @@ def interval_day():
         element.click()
         get_list_finn()
     except Exception as e:
-        print(f"Fim da infrações. Total: '{len(finn)}'")
+        print(e) 
+
+# filter to not search for already registered finns
+def filter_db():
+    save = pd.read_sql_query(r"SELECT NUM_AUTO from autos_strans", con)
+    save = save['NUM_AUTO'].tolist()
+    for i in finn:
+        if i in save:
+            finn.remove(i)
+    print(f"Autos novos para pesquisa: '{len(finn)}'")
 
 
+# information capture function
 def souce_finn(auto):
     driver.find_element(By.ID, 'inicioInfracao').clear()
     driver.find_element(By.ID, "fimInfracao").clear()
@@ -147,8 +157,6 @@ def souce_finn(auto):
             adress = driver.find_elements_by_xpath('//*[@id="imprimirMulta"]/fieldset[6]/div/div[2]')[0].text
         adress = adress.split(': ', 1)[1]
         print(adress)
-        
-
         code = driver.find_elements_by_xpath('//*[@id="imprimirMulta"]/fieldset[6]/div/div[1]')[0].text
         if code == '':
             code =  driver.find_elements_by_xpath('//*[@id="imprimirMulta"]/fieldset[7]/div/div[1]')[0].text
@@ -197,16 +205,6 @@ def souce_finn(auto):
       print("ERROR")
 
 
-try:
-    con = pyodbc.connect(
-    r'Driver={SQL Server};'
-    r'Server=DESKTOP-R02SDIT;'
-    r'Database=BD_STRANS;')
-    print("SQL Server Database connection successful")
-except Error as err:
-    print(f"Error: '{err}'")
-
-
 driver = webdriver.Edge() 
 driver.get(site)
 
@@ -216,14 +214,30 @@ interval_day()
 
 get_list_finn()
 
-cursor = con.cursor()
+#connection with database
+try:
+    con = pyodbc.connect(
+    r'Driver={SQL Server};'
+    r'Server=DESKTOP-R02SDIT;'
+    r'Database=BD_STRANS;')
+    print("SQL Server Database connection successful")
+except Error as err:
+    print(f"Error: '{err}'")
 
-for auto in finn:
-    # origin_list.append(origin)   
-    print("Auto:", auto)
-    souce_finn(auto)
-    
-cursor.close()
-con.commit()
-con.close()
-driver.close()
+filter_db()
+
+if len(finn) == 0:
+    cursor.close()
+    con.commit()
+    con.close()
+    driver.close()
+else:
+    cursor = con.cursor()
+    for auto in finn:
+        print("Auto:", auto)
+        souce_finn(auto)
+        
+    cursor.close()
+    con.commit()
+    con.close()
+    driver.close()
