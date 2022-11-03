@@ -215,6 +215,14 @@ interval_day()
 get_list_finn()
 
 #connection with database
+try:
+    con = pyodbc.connect(
+    r'Driver={SQL Server};'
+    r'Server=DESKTOP-R02SDIT;'
+    r'Database=BD_STRANS;')
+    print("SQL Server Database connection successful")
+except Error as err:
+    print(f"Error: '{err}'")
 
 filter_db()
 
@@ -224,15 +232,6 @@ if len(finn) == 0:
     con.close()
     driver.close()
 else:
-    try:
-    con = pyodbc.connect(
-    r'Driver={SQL Server};'
-    r'Server=DESKTOP-R02SDIT;'
-    r'Database=BD_STRANS;')
-    print("SQL Server Database connection successful")
-except Error as err:
-    print(f"Error: '{err}'")
-
     cursor = con.cursor()
     for auto in finn:
         print("Auto:", auto)
