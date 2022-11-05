@@ -85,7 +85,8 @@ def interval_day():
     try:
         element = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, 'inicioInfracao')))   
         today = date.today()
-        end_date = today - datetime.timedelta(days=2)
+        today = today - datetime.timedelta(days = 30)
+        end_date = today - datetime.timedelta(days = 7)
         element.send_keys(end_date.strftime("%d/%m/%Y"))
         element = driver.find_element(By.ID, "fimInfracao")
         element.send_keys(today.strftime("%d/%m/%Y"))

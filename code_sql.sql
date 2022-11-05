@@ -1,0 +1,110 @@
+CREATE DATABASE BD_STRANS;
+GO
+
+USE [BD_STRANS];
+GO
+
+--- create a new table to armen new FINNS
+CREATE TABLE [dbo].[autos_strans]
+(
+	[NUM_AUTO][varchar](50) NOT NULL PRIMARY KEY ,
+	[NAM_PLACA][varchar](MAX) NOT NULL ,
+	[NAM_ENDERECO][varchar](MAX) NOT NULL,
+	[DT_DATA_HORA][datetime] NOT NULL,
+	[COD_INFRACAO][int] NOT NULL,
+	[COD_MATRICULA][int] NOT NULL,
+	[CH_SNE][varchar](MAX) NOT NULL,
+	[CH_ORIGIN][varchar](50)NOT NULL
+)
+GO
+
+ALTER TABLE autos_strans
+ADD TIP_CARRO[varchar](MAX) 
+GO
+
+--- The table with description of the finns  and agent's register was loaded from csv files 
+--- we transform them
+
+--- TRANSFORMs COLUMN TO NO NULL
+ALTER TABLE INFRACOES
+ALTER COLUMN COD_INFRACAO FLOAT NOT NULL;
+GO
+
+ALTER TABLE MATRICULAS
+ALTER COLUMN COD_MATRICULA FLOAT NOT NULL;
+GO
+
+--- CREATE PRIMARY KEY
+ALTER TABLE INFRACOES
+ADD PRIMARY KEY (COD_INFRACAO)
+
+ALTER TABLE MATRICULAS
+ADD PRIMARY KEY (COD_MATRICULA)
+GO
+
+--- we have problems in table matriculas with duplicated rows, it's importante delete this rows
+--- find duplicates elements
+SELECT COD_MATRICULA, NOM_NOME, COUNT(*) AS "Repetições"
+FROM MATRICULAS
+GROUP BY COD_MATRICULA, NOM_NOME
+HAVING COUNT(*) > 1  
+ORDER BY COD_MATRICULA
+GO
+
+--- delete duplicates rows
+WITH CTE ([NOM_NOME],
+						 duplicatecount)
+AS (SELECT [NOM_NOME],
+						ROW_NUMBER() OVER (PARTITION BY [NOM_NOME]
+						ORDER BY COD_MATRICULA) AS duplicatecount
+			FROM MATRICULAS)
+DELETE FROM CTE
+WHERE DuplicateCount > 1;
+GO
+
+--- CORRECT INFORMATION
+  UPDATE autos_strans
+  SET CH_ORIGIN = 'RADAR'
+  WHERE NUM_AUTO LIKE  '%ER%'
+
+   UPDATE autos_strans
+  SET CH_ORIGIN = 'DOFT'
+  WHERE NUM_AUTO NOT LIKE  '%ER%'
+  GO
+
+
+
+--- SCRIPTS SOURCE
+SELECT  COUNT(*) AS 'Autos Registrados'
+FROM autos_strans
+
+SELECT CH_SNE, COUNT(*) AS 'Contagem'
+FROM autos_strans
+GROUP BY CH_SNE
+ORDER	BY	COUNT(*) DESC;
+
+SELECT CH_ORIGIN, COUNT(*) AS 'Contagem'
+FROM autos_strans
+GROUP BY CH_ORIGIN
+ORDER	BY	COUNT(*) DESC;
+
+
+SELECT TIP_CARRO, COUNT(*) AS 'Contagem'
+FROM autos_strans
+GROUP BY TIP_CARRO
+ORDER	BY	COUNT(*) DESC;
+
+SELECT m.COD_INFRACAO , e.ST_DESCRICAO_INFRA ,  COUNT(*) AS 'Contagem'
+FROM autos_strans AS m, INFRACOES AS e
+WHERE m.COD_INFRACAO =  e.COD_INFRACAO
+GROUP BY  m.COD_INFRACAO , e.ST_DESCRICAO_INFRA
+ORDER	BY	COUNT(*) DESC;
+GO
+
+  SELECT m.CH_SNE ,  MONTH(m.DT_DATA_HORA) AS 'Mês' , COUNT(*) AS 'Autos por mês'
+  FROM autos_strans AS m
+  WHERE YEAR(m.DT_DATA_HORA) = 2022
+  GROUP BY  m.CH_SNE,  MONTH(m.DT_DATA_HORA) 
+  ORDER	BY MONTH(m.DT_DATA_HORA)
+  GO
+
