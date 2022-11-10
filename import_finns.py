@@ -85,8 +85,8 @@ def interval_day():
     try:
         element = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, 'inicioInfracao')))   
         today = date.today()
-        today = today - datetime.timedelta(days = 30)
-        end_date = today - datetime.timedelta(days = 7)
+        today = today - datetime.timedelta(days = 1)
+        end_date = today - datetime.timedelta(days = 10)
         element.send_keys(end_date.strftime("%d/%m/%Y"))
         element = driver.find_element(By.ID, "fimInfracao")
         element.send_keys(today.strftime("%d/%m/%Y"))
@@ -227,6 +227,9 @@ except Error as err:
 
 filter_db()
 
+
+counter = 0
+
 if len(finn) == 0:
     cursor.close()
     con.commit()
@@ -235,6 +238,8 @@ if len(finn) == 0:
 else:
     cursor = con.cursor()
     for auto in finn:
+        counter +=1
+        print(f"Progress: '{round(counter/len(finn), 2)}'%")
         print("Auto:", auto)
         souce_finn(auto)
         
