@@ -124,9 +124,11 @@ ORDER BY 'Contagem' DESC
 GO
 
 -- search fine in specific adrress
-SELECT  m.NAM_ENDERECO as 'Endere�o', COUNT(*) AS 'Contagem'
+SELECT  m.NAM_ENDERECO as 'Endereço', COUNT(*) AS 'Contagem'
 FROM autos_strans AS m
 WHERE m.NAM_ENDERECO LIKE '%FREI %'
+GROUP BY  m.NAM_ENDERECO 
+go
 
 -- search fine's adrress
 SELECT  m.NAM_ENDERECO as 'Endere�o', COUNT(*) AS 'Contagem'
@@ -136,7 +138,7 @@ ORDER BY 'Contagem' DESC
 GO
 
 -- search in the old db
--- search  not paid and paid fine
+-- search  not paid and paid fines
 SELECT  m.status, COUNT(*)
 FROM MULTAS02 AS m
 WHERE m.ST_PLACAVEICULO != ''
@@ -148,4 +150,4 @@ GO
 
 SELECT  *
 FROM INFRACOES as n
-WHERE n.ST_DESCRICAO_INFRA LIKE '%ESTA %'
+WHERE n.ST_DESCRICAO_INFRA LIKE '%ESTACIONAR%'
