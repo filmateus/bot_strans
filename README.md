@@ -1,3 +1,5 @@
+# Bot strans
+
 Em 2022, a strans adotou um novo sistema de gestão de autos de trânsito com o objetivo de solucionar os problemas recorrentes que o sistema até então utilizado possuia. O novo sistema, para administração, foi uma boa decisão, para a análises de dados, nem tanto.
 
 Com o antigo sistema era possível acessar o banco de dados em formato SQL e realizar consultas e análises. Com o novo sistema, não havia acesso ao banco de dados, pois o sistema era mais restristo.
